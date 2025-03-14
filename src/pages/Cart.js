@@ -3,11 +3,9 @@ import SummaryApi from '../common'
 import Context from '../context'
 import displayINRCurrency from '../helpers/displayCurrency'
 import { MdDelete } from "react-icons/md";
-import { useNavigate } from 'react-router-dom';
 
 
 const Cart = () => {
-    const navigate = useNavigate();
     const [data,setData] = useState([])
     const [loading,setLoading] = useState(false)
     const context = useContext(Context)
@@ -164,8 +162,6 @@ const Cart = () => {
     
                     setData([]);
                     context.fetchUserAddToCart();
-
-                    navigate("/orders");
                     
                 } else {
                     alert("Payment verification failed");
