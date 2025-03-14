@@ -45,7 +45,7 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        try{
+        try {
             const dataResponse = await fetch(SummaryApi.signIn.url, {
                 method: SummaryApi.signIn.method,
                 credentials: 'include',
@@ -54,23 +54,29 @@ const Login = () => {
                 },
                 body: JSON.stringify(data)
             })
-    
+
             const dataApi = await dataResponse.json()
-    
+
             if (dataApi.success) {
-                toast.success(dataApi.message)
-                navigate('/')
-                fetchUserDetails()
-                fetchUserAddToCart()
+                toast.success(dataApi.message);
+                console.log("Navigating to home page...");
+                navigate('/');
+
+                try {
+                    await fetchUserDetails();
+                    await fetchUserAddToCart();
+                } catch (err) {
+                    console.error("Error fetching user/cart details:", err);
+                }
             }
-    
+
             if (dataApi.error) {
                 toast.error(dataApi.message)
             }
-        }catch (error) {
+        } catch (error) {
             console.error("Fetch error:", error);
             toast.error("Something went wrong. Please try again.");
-        }    
+        }
     }
 
     console.log("data login", data)
