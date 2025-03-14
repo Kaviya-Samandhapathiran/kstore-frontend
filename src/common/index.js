@@ -1,4 +1,4 @@
-const backendDomin = "https://kstore-backend.vercel.app"
+const backendDomin = "https://kstore-backend-9zga.vercel.app"
 
 const SummaryApi = {
     signUP : {
