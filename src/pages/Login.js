@@ -1,95 +1,70 @@
 import React, { useContext, useState } from 'react'
 import loginIcons from '../assest/signin.gif'
-import { FaEye } from "react-icons/fa";
-import { FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from 'react-router-dom';
 import SummaryApi from '../common';
 import { toast } from 'react-toastify';
 import Context from '../context';
 import imageTobase64 from '../helpers/imageTobase64';
-
+import { useDispatch } from 'react-redux';
+import { setUserDetails } from '../store/userSlice';
 
 const Login = () => {
-    const [showPassword, setShowPassword] = useState(false)
-    const [data, setData] = useState({
-        email: "",
-        password: ""
-    })
-    const navigate = useNavigate()
-    const { fetchUserDetails, fetchUserAddToCart } = useContext(Context)
+    const [showPassword, setShowPassword] = useState(false);
+    const [data, setData] = useState({ email: "", password: "" });
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { fetchUserDetails, fetchUserAddToCart } = useContext(Context);
 
     const handleOnChange = (e) => {
-        const { name, value } = e.target
-
-        setData((preve) => {
-            return {
-                ...preve,
-                [name]: value
-            }
-        })
-    }
+        const { name, value } = e.target;
+        setData((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleUploadPic = async (e) => {
-        const file = e.target.files[0]
-
-        const imagePic = await imageTobase64(file)
-
-        setData((preve) => {
-            return {
-                ...preve,
-                profilePic: imagePic
-            }
-        })
-
-    }
+        const file = e.target.files[0];
+        const imagePic = await imageTobase64(file);
+        setData((prev) => ({ ...prev, profilePic: imagePic }));
+    };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         try {
             const dataResponse = await fetch(SummaryApi.signIn.url, {
                 method: SummaryApi.signIn.method,
                 credentials: 'include',
-                headers: {
-                    "content-type": "application/json"
-                },
+                headers: { "content-type": "application/json" },
                 body: JSON.stringify(data)
-            })
+            });
 
-            const dataApi = await dataResponse.json()
+            const dataApi = await dataResponse.json();
 
             if (dataApi.success) {
                 toast.success(dataApi.message);
-                console.log("Navigating to home page...");
-                navigate('/');
+                
+                // Fetch latest user details
+                const userData = await fetchUserDetails();
+                dispatch(setUserDetails(userData));
 
-                try {
-                    await fetchUserDetails();
-                    await fetchUserAddToCart();
-                } catch (err) {
-                    console.error("Error fetching user/cart details:", err);
-                }
-            }
+                // Fetch user cart details
+                await fetchUserAddToCart();
 
-            if (dataApi.error) {
-                toast.error(dataApi.message)
+                navigate('/'); // Redirect to homepage
+            } else {
+                toast.error(dataApi.message);
             }
         } catch (error) {
             console.error("Fetch error:", error);
             toast.error("Something went wrong. Please try again.");
         }
-    }
-
-    console.log("data login", data)
+    };
 
     return (
         <section id='login'>
             <div className='mx-auto container p-4'>
-
                 <div className='bg-white p-5 w-full max-w-sm mx-auto'>
                     <div className='w-20 h-20 mx-auto relative overflow-hidden rounded-full'>
-                        <div>
-                            <img src={data.profilePic || loginIcons} alt='login icons' />
-                        </div>
+                        <img src={data.profilePic || loginIcons} alt='login icon' />
                         <form>
                             <label>
                                 <div className='text-xs bg-opacity-80 bg-slate-200 text-orange-500 pb-4 pt-2 cursor-pointer text-center absolute bottom-0 w-full'>
@@ -102,7 +77,7 @@ const Login = () => {
 
                     <form className='pt-6 flex flex-col gap-2' onSubmit={handleSubmit}>
                         <div className='grid'>
-                            <label>Email : </label>
+                            <label>Email:</label>
                             <div className='bg-slate-100 p-2'>
                                 <input
                                     type='email'
@@ -115,7 +90,7 @@ const Login = () => {
                         </div>
 
                         <div>
-                            <label>Password : </label>
+                            <label>Password:</label>
                             <div className='bg-slate-100 p-2 flex'>
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -124,36 +99,23 @@ const Login = () => {
                                     name='password'
                                     onChange={handleOnChange}
                                     className='w-full h-full outline-none bg-transparent' />
-                                <div className='cursor-pointer text-xl' onClick={() => setShowPassword((preve) => !preve)}>
-                                    <span>
-                                        {
-                                            showPassword ? (
-                                                <FaEye />
-                                            )
-                                                :
-                                                (
-                                                    <FaEyeSlash />
-                                                )
-                                        }
-                                    </span>
+                                <div className='cursor-pointer text-xl' onClick={() => setShowPassword((prev) => !prev)}>
+                                    {showPassword ? <FaEye /> : <FaEyeSlash />}
                                 </div>
                             </div>
                             <Link to={'/forgot-password'} className='block w-fit ml-auto hover:underline hover:text-orange-600'>
-                                Forgot password ?
+                                Forgot password?
                             </Link>
                         </div>
 
                         <button className='bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 w-full max-w-[150px] rounded-full hover:scale-110 transition-all mx-auto block mt-6'>Login</button>
-
                     </form>
 
-                    <p className='my-5'>Don't have account ? <Link to={"/sign-up"} className='font-bold text-orange-500 hover:text-orange-600 hover:underline'>Sign up</Link></p>
+                    <p className='my-5'>Don't have an account? <Link to={"/sign-up"} className='font-bold text-orange-500 hover:text-orange-600 hover:underline'>Sign up</Link></p>
                 </div>
-
-
             </div>
         </section>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;
